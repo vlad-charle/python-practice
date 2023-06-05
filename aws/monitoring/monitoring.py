@@ -1,10 +1,15 @@
 import boto3
 import requests
 import schedule
+import paramiko
+import os
 
 healthcheck_count = 1
+healthcheck_fails = 0
 
-def healthcheck ():
+user_home_dir = os.getenv("HOME")
+
+def healthcheck():
 
     global healthcheck_count
     print(f"Running healthcheck #{healthcheck_count}")
@@ -32,9 +37,11 @@ def healthcheck ():
             if instance["State"]["Name"] == "running":
                 instances_public_ip.append(instance["PublicIpAddress"])
 
-    # make HTTP request to each healthy instance public IP 
+    # make HTTP request to each healthy instance public IP,
+    # if there is an error, count it and when there is 5 consequence errors initiate self-recovery 
+    # by logging into server and restarting container
     for ip in instances_public_ip:
-
+        global healthcheck_fails
         try:
             response = requests.get(f"http://{ip}:8080")
 
@@ -42,11 +49,35 @@ def healthcheck ():
                 response.raise_for_status()
             except requests.exceptions.HTTPError as error:
                 print("HTTP status is not 200, error: " + str(error))
+                healthcheck_fails += 1
+                print(f"Number of consequently failed healthchecks is {healthcheck_fails}")
+                if healthcheck_fails == 5:
+                    self_recovery(ip)
 
             print(f"IP {ip} is healthy")
+            healthcheck_fails = 0
         except requests.exceptions.ConnectionError as error:
             print(f"Cannot establish connection for IP: {ip}, error: " + str(error))
+            healthcheck_fails += 1
+            print(f"Number of consequently failed healthchecks is {healthcheck_fails}")
+            if healthcheck_fails == 5:
+                self_recovery(ip)
 
+def self_recovery(ip):
+    global user_home_dir
+    print("Starting self-recovery")
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(hostname=ip, username="ubuntu", key_filename=user_home_dir + "/.ssh/id_rsa.pub")
+    print(f"Logged into server {ip}")
+    stdin, stdout, stderr = ssh.exec_command('sudo docker ps -a')
+    containers = stdout.readlines()
+    container_id = containers[1].split(" ")[0]
+    print(f"Got container ID: {container_id}")
+    stdin, stdout, stderr = ssh.exec_command(f'sudo docker restart {container_id}')
+    cmd_output = stdout.readlines()
+    if container_id in cmd_output[0]:
+        print(f"Sucessfully restarted container ID: {container_id}")
 
 schedule.every(10).seconds.do(healthcheck)
 
