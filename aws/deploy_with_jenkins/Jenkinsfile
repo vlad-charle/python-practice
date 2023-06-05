@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'APP', defaultValue: 'my-custom-nginx', description: 'App name')
+        string(name: 'REGION', defaultValue: 'us-east-1', description: 'AWS region')
+    }
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        timestamps()
+        buildDiscarder(logRotator(
+            artifactDaysToKeepStr: ("${BRANCH_NAME}" == 'master' && "${params.ENV}" == 'prod') ? '30' : '5',
+            artifactNumToKeepStr: ("${BRANCH_NAME}" == 'master' && "${params.ENV}" == 'prod') ? '10' : '2',
+            daysToKeepStr:  ("${BRANCH_NAME}" == 'master' && "${params.ENV}" == 'prod') ? '30' : '5',
+            numToKeepStr:  ("${BRANCH_NAME}" == 'master' && "${params.ENV}" == 'prod') ? '30' : '10',
+            ))
+        ansiColor('xterm')
+    }
+
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('aws_access_key_id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
+        SSH_KEY = credentials('ssh_key')
+    }
+
+    stages {
+        stage('Fetch image list from ECR') {
+            steps {
+                TAGS_AND_REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_images.py',returnStdout: true ).trim()
+                TAGS = TAGS_AND_REPO_URI[0]
+                REPO_URI = TAGS_AND_REPO_URI[1]
+            }
+        }
+
+        stage('Chose image to deploy') {
+            input {
+                message 'Please, chose image to deploy'
+                ok 'Done'
+                parameters {
+                    choice(name: "IMAGE", choices: $TAGS, description: "Chose ${APP} image to deploy")
+                }
+            }
+            steps {
+                env.IMAGE = $params.IMAGE
+            }
+        }
+
+        stage('Deploy and check status') {
+            steps {
+                sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
+            }
+        }
+    }
+
+    post {
+        // Clean after build
+        always {
+            cleanWs(cleanWhenNotBuilt: false,
+                    deleteDirs: true,
+                    cleanWhenAborted: true,
+                    cleanWhenFailure: true,
+                    cleanWhenSuccess: true,
+                    cleanWhenUnstable: true)
+        }
+    }
+}
