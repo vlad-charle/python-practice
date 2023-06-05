@@ -16,7 +16,7 @@ for repo in repos:
         if len(image['imageTags']) == 1: # list with 1 element breaks sorted(), so we avoid it with additional check
             print(f"Image with digest {image['imageDigest']} has only 1 tag: {image['imageTags'][0]}")
         else:
-            sorted_tags = sorted(image['imageTags'])
+            sorted_tags = sorted(image['imageTags'], reverse=True)
             print(f"Image with digest {image['imageDigest']} tags are:") # image names are the same within repo, so we use digest to distinguish them
             for tag in sorted_tags:
                 print(tag)
