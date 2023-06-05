@@ -29,8 +29,8 @@ pipeline {
             steps {
                 script {
                     TAGS_AND_REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_images.py',returnStdout: true ).trim()
-                    TAGS = TAGS_AND_REPO_URI[0]
-                    REPO_URI = TAGS_AND_REPO_URI[1]
+                    env.TAGS = TAGS_AND_REPO_URI[0]
+                    env.REPO_URI = TAGS_AND_REPO_URI[1]
                 }
             }
         }
