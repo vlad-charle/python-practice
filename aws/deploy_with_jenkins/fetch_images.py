@@ -2,8 +2,9 @@ import boto3
 import os
 
 app_name = os.getenv("APP")
+region = os.getenv("REGION")
 
-ecr = boto3.client('ecr')
+ecr = boto3.client('ecr', region_name=region)
 
 repos = ecr.describe_repositories()['repositories']
 for repo in repos:
