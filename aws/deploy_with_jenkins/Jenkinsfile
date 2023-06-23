@@ -22,7 +22,7 @@ pipeline {
         AWS_ACCESS_KEY_ID = credentials('aws_access_key_id')
         AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
         SSH_KEY = credentials('ssh_key')
-        TAGS_AND_REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_images.py',returnStdout: true ).trim()
+        TAGS_AND_REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_images.py',returnStdout: true).trim()
         TAGS = TAGS_AND_REPO_URI[0]
         REPO_URI = TAGS_AND_REPO_URI[1]
     }
@@ -43,7 +43,7 @@ pipeline {
                 message 'Please, chose image to deploy'
                 ok 'Done'
                 parameters {
-                    choice(name: "IMAGE", choices: $TAGS, description: "Chose ${APP} image to deploy")
+                    choice(name: "IMAGE", choices: TAGS, description: "Chose ${APP} image to deploy")
                 }
             }
             steps {
