@@ -22,3 +22,4 @@ for image in images['imageDetails']:
 sorted_list = sorted(image_list, reverse=True)
 
 result = [sorted_list, app_repo_uri]
+print(result)
