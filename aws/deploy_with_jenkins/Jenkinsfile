@@ -33,10 +33,13 @@ pipeline {
         stage('Fetch image list from ECR') {
             steps {
                 script {
-                    // TAGS_AND_REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_images.py',returnStdout: true ).trim()
-                    // env.TAGS = TAGS_AND_REPO_URI[0]
-                    // env.REPO_URI = TAGS_AND_REPO_URI[1]
-                    sh "printenv && python3 aws/deploy_with_jenkins/fetch_images.py"
+                    TAGS_AND_REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_images.py',returnStdout: true ).trim()
+                    echo TAGS_AND_REPO_URI
+                    env.TAGS = TAGS_AND_REPO_URI[0]
+                    echo env.TAGS
+                    env.REPO_URI = TAGS_AND_REPO_URI[1]
+                    echo env.REPO_URI
+                    // sh "printenv && python3 aws/deploy_with_jenkins/fetch_images.py"
                 }
             }
         }
