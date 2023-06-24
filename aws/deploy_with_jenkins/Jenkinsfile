@@ -24,21 +24,22 @@ pipeline {
         SSH_KEY = credentials('ssh_key')
         REGION = "${params.REGION}"
         APP = "${params.APP}"
-        // TAGS_AND_REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_images.py',returnStdout: true).trim()
-        // TAGS = TAGS_AND_REPO_URI[0]
-        // REPO_URI = TAGS_AND_REPO_URI[1]
     }
 
     stages {
         stage('Fetch image list from ECR') {
             steps {
                 script {
-                    TAGS_AND_REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_images.py',returnStdout: true ).trim()
-                    echo TAGS_AND_REPO_URI
-                    env.TAGS = TAGS_AND_REPO_URI[0]
-                    echo env.TAGS
-                    env.REPO_URI = TAGS_AND_REPO_URI[1]
-                    echo env.REPO_URI
+                    TAGS = sh(script: 'python3 aws/deploy_with_jenkins/fetch_image_list.py',returnStdout: true).trim()
+                    echo TAGS
+                    REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_repo_uri.py',returnStdout: true).trim()
+                    echo REPO_URI
+                    // env.TAGS = TAGS_AND_REPO_URI[0]
+                    // echo env.TAGS
+                    // TAGS = TAGS_AND_REPO_URI[0]
+                    // echo TAGS
+                    // env.REPO_URI = TAGS_AND_REPO_URI[1]
+                    // echo env.REPO_URI
                     // sh "printenv && python3 aws/deploy_with_jenkins/fetch_images.py"
                 }
             }
@@ -54,7 +55,7 @@ pipeline {
         //     }
         //     steps {
         //         script {
-        //             env.IMAGE = $params.IMAGE
+        //             env.IMAGE = REPO_URI + ":" + $params.IMAGE
         //         }
         //     }
         // }
