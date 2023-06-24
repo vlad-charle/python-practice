@@ -61,7 +61,7 @@ pipeline {
 
         stage('Deploy and check status') {
             environment {
-                IMAGE = REPO_URI + ":" + $params.IMAGE
+                IMAGE = "${REPO_URI}:${params.IMAGE}"
             }
             steps {
                 echo IMAGE
