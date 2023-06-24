@@ -4,7 +4,6 @@ import time
 import paramiko
 import sys
 import requests
-import io
 
 app_name = os.getenv("APP")
 ssh_key = os.getenv("SSH_KEY")
@@ -51,7 +50,7 @@ for ip in instances_public_ip:
     print(f"Logging into server {ip}")
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    key = paramiko.RSAKey.from_private_key(ssh_key)
+    key = paramiko.RSAKey.from_private_key(paramiko.RSAKey(data=ssh_key))
     ssh.connect(hostname=ip, username="ubuntu", pkey=key)
     ecr = boto3.client('ecr', region_name=region)
     token = ecr.get_authorization_token()['authorizationData'][0]['authorizationToken']
