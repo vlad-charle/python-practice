@@ -29,34 +29,34 @@ pipeline {
     stages {
         stage('Fetch image list from ECR') {
             steps {
+                TAGS = sh(script: 'python3 aws/deploy_with_jenkins/fetch_image_list.py',returnStdout: true).trim()
+                echo TAGS
                 script {
-                    TAGS = sh(script: 'python3 aws/deploy_with_jenkins/fetch_image_list.py',returnStdout: true).trim()
-                    echo TAGS
                     lastSymbol = TAGS.length() - 1
-                    TAGS_LIST = TAGS.substring(1,lastSymbol).split(',')*.trim()
-                    echo TAGS_LIST[0]
-                    echo TAGS_LIST[1]
-                    echo TAGS_LIST[2]
-                    REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_repo_uri.py',returnStdout: true).trim()
-                    echo REPO_URI
+                    TAGS_LIST = TAGS.substring(1,lastSymbol).split(',').collect {tag -> tag.trim()}
                 }
+                echo TAGS_LIST
+                echo TAGS_LIST[0]
+                echo TAGS_LIST[1]
+                echo TAGS_LIST[2]
+                REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_repo_uri.py',returnStdout: true).trim()
+                echo REPO_URI
             }
         }
 
-        // stage('Chose image to deploy') {
-        //     input {
-        //         message 'Please, chose image to deploy'
-        //         ok 'Done'
-        //         parameters {
-        //             choice(name: "IMAGE", choices: TAGS, description: "Chose ${APP} image to deploy")
-        //         }
-        //     }
-        //     steps {
-        //         script {
-        //             env.IMAGE = REPO_URI + ":" + $params.IMAGE
-        //         }
-        //     }
-        // }
+        stage('Chose image to deploy') {
+            input {
+                message 'Please, chose image to deploy'
+                ok 'Done'
+                parameters {
+                    choice(name: "IMAGE", choices: TAGS_LIST, description: "Chose ${APP} image to deploy")
+                }
+            }
+            steps {
+                env.IMAGE = REPO_URI + ":" + $params.IMAGE
+                echo env.IMAGE
+            }
+        }
 
         // stage('Deploy and check status') {
         //     steps {
