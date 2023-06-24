@@ -46,7 +46,7 @@ for ip in instances_public_ip:
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     # create key object from env var value
-    key = paramiko.RSAKey.from_private_key(paramiko.StringIO(ssh_key))
+    key = paramiko.RSAKey.from_private_key(ssh_key)
     ssh.connect(hostname=ip, username="ubuntu", pkey=key)
     ecr = boto3.client('ecr', region_name=region)
     token = ecr.get_authorization_token()['authorizationData'][0]['authorizationToken']
