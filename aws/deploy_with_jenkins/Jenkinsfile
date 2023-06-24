@@ -49,10 +49,10 @@ pipeline {
                 //     echo env.IMAGE
                 // }
                 input {
-                message "Please choose an image to deploy"
-                ok "Done"
-                parameters {
-                    choice(name: 'IMAGE', choices: TAGS_LIST, description: "Choose ${APP} image to deploy")
+                    message "Please choose an image to deploy"
+                    ok "Done"
+                    parameters {
+                        choice(name: 'IMAGE', choices: TAGS_LIST, description: "Choose ${APP} image to deploy")
                     }
                 }
                 echo params.IMAGE
