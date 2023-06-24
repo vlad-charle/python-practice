@@ -4,14 +4,18 @@ import time
 import paramiko
 import sys
 import requests
+import io
 
 app_name = os.getenv("APP")
 ssh_key = os.getenv("SSH_KEY")
 image = os.getenv("IMAGE")
 region = os.getenv("REGION")
 
+print(f"Starting deployment of {app_name} app in {region} with {image} image")
+
 client = boto3.client('ec2', region_name=region)
 
+print(f"Check for healthy instances")
 # make list of instances, that passed both status checks
 healthy_instances_id = []
 instance_statuses = client.describe_instance_status()
@@ -23,6 +27,7 @@ if len(healthy_instances_id) == 0:
     print("Sorry, there is no healthy instances at the moment")
     sys.exit(1)
 
+print(f"Making list of healthy instances IPs with tag 'Name: {app_name}'")
 # make list of public IPs of instances, that in running state
 instances_public_ip = []
 instance_reservations = client.describe_instances(
@@ -40,13 +45,14 @@ for r in instance_reservations["Reservations"]:
         if instance["State"]["Name"] == "running":
             instances_public_ip.append(instance["PublicIpAddress"])
 
+print(f"Starting deployment")
 # login at each server and do docker login, run container, make sure it's in running status and do simple HTTP healthcheck to make sure app is available
 for ip in instances_public_ip:
     print(f"Logging into server {ip}")
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    # create key object from env var value
-    key = paramiko.RSAKey.from_private_key(ssh_key)
+    # create key object from env var value, StringIO is required to convert env var value into file-like object, that is expected by paramiko
+    key = paramiko.RSAKey.from_private_key(io.StringIO(ssh_key))
     ssh.connect(hostname=ip, username="ubuntu", pkey=key)
     ecr = boto3.client('ecr', region_name=region)
     token = ecr.get_authorization_token()['authorizationData'][0]['authorizationToken']
