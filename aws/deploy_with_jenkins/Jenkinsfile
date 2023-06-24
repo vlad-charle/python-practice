@@ -28,8 +28,11 @@ pipeline {
 
     stages {
         stage('Fetch image list from ECR') {
-            steps {
+            environment {
                 TAGS = sh(script: 'python3 aws/deploy_with_jenkins/fetch_image_list.py',returnStdout: true).trim()
+                REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_repo_uri.py',returnStdout: true).trim()
+            }
+            steps {
                 echo TAGS
                 script {
                     lastSymbol = TAGS.length() - 1
@@ -39,7 +42,6 @@ pipeline {
                 echo TAGS_LIST[0]
                 echo TAGS_LIST[1]
                 echo TAGS_LIST[2]
-                REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_repo_uri.py',returnStdout: true).trim()
                 echo REPO_URI
             }
         }
@@ -53,16 +55,19 @@ pipeline {
                 }
             }
             steps {
-                env.IMAGE = REPO_URI + ":" + $params.IMAGE
-                echo env.IMAGE
+                echo params.IMAGE
             }
         }
 
-        // stage('Deploy and check status') {
-        //     steps {
-        //         sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
-        //     }
-        // }
+        stage('Deploy and check status') {
+            environment {
+                IMAGE = REPO_URI + ":" + $params.IMAGE
+            }
+            steps {
+                echo IMAGE
+                sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
+            }
+        }
     }
 
     post {
