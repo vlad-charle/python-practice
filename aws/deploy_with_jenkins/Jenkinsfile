@@ -39,6 +39,13 @@ pipeline {
         }
 
         stage('Chose image to deploy') {
+            input {
+                message "Please choose an image to deploy"
+                ok "Done"
+                parameters {
+                    choice(name: 'IMAGE', choices: TAGS_LIST, description: "Choose ${APP} image to deploy")
+                }
+            }
             steps {
                 // script {
                 //     def selectedImage = input(message: 'Please choose an image to deploy', 
@@ -48,13 +55,6 @@ pipeline {
                 //     env.IMAGE = "${REPO_URI}:${selectedImage}"
                 //     echo env.IMAGE
                 // }
-                input {
-                    message "Please choose an image to deploy"
-                    ok "Done"
-                    parameters {
-                        choice(name: 'IMAGE', choices: TAGS_LIST, description: "Choose ${APP} image to deploy")
-                    }
-                }
                 echo params.IMAGE
             }
         }
