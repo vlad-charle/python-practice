@@ -46,28 +46,28 @@ pipeline {
             }
         }
 
-        stage('Chose image to deploy') {
-            input {
-                message 'Please, chose image to deploy'
-                ok 'Done'
-                parameters {
-                    choice(name: "IMAGE", choices: TAGS_LIST, description: "Chose ${APP} image to deploy")
-                }
-            }
-            steps {
-                echo params.IMAGE
-            }
-        }
+        // stage('Chose image to deploy') {
+        //     input {
+        //         message 'Please, chose image to deploy'
+        //         ok 'Done'
+        //         parameters {
+        //             choice(name: "IMAGE", choices: TAGS_LIST, description: "Chose ${APP} image to deploy")
+        //         }
+        //     }
+        //     steps {
+        //         echo params.IMAGE
+        //     }
+        // }
 
-        stage('Deploy and check status') {
-            environment {
-                IMAGE = "${REPO_URI}:${params.IMAGE}"
-            }
-            steps {
-                echo IMAGE
-                sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
-            }
-        }
+        // stage('Deploy and check status') {
+        //     environment {
+        //         IMAGE = "${REPO_URI}:${params.IMAGE}"
+        //     }
+        //     steps {
+        //         echo IMAGE
+        //         sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
+        //     }
+        // }
     }
 
     post {
