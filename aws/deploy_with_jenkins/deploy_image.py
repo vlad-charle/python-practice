@@ -10,8 +10,6 @@ ssh_key = os.getenv("SSH_KEY")
 image = os.getenv("IMAGE")
 region = os.getenv("REGION")
 
-print(ssh_key)
-
 client = boto3.client('ec2', region_name=region)
 
 # make list of instances, that passed both status checks
@@ -47,7 +45,9 @@ for ip in instances_public_ip:
     print(f"Logging into server {ip}")
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(hostname=ip, username="ubuntu", pkey=ssh_key)
+    # create key object from env var value
+    key = paramiko.RSAKey.from_private_key(paramiko.StringIO(ssh_key))
+    ssh.connect(hostname=ip, username="ubuntu", pkey=key)
     ecr = boto3.client('ecr', region_name=region)
     token = ecr.get_authorization_token()['authorizationData'][0]['authorizationToken']
     stdin, stdout, stderr = ssh.exec_command(f'echo {token} | sudo docker login -u AWS --password-stdin && sudo docker run --name {app_name} -p 8080:80 {image}')
