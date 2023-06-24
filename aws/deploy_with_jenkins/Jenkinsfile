@@ -46,13 +46,17 @@ pipeline {
 
         stage('Chose image to deploy') {
             steps {
-                input {
-                    message 'Please, chose image to deploy'
-                    ok 'Done'
-                    parameters {
-                        choice(name: "IMAGE", choices: TAGS, description: "Chose ${APP} image to deploy")
-                    }
-                }
+                // input {
+                //     message 'Please, chose image to deploy'
+                //     ok 'Done'
+                //     parameters {
+                //         choice(name: "IMAGE", choices: TAGS, description: "Chose ${APP} image to deploy")
+                //     }
+                // }
+                input(message: 'Please choose an image to deploy', 
+                    parameters: [
+                        choice(name: 'IMAGE', choices: TAGS, description: "Choose ${APP} image to deploy")
+                    ])
                 echo params.IMAGE
             }
         }
