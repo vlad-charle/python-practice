@@ -14,14 +14,7 @@ client = boto3.client('ec2', region_name=region)
 
 # make list of instances, that passed both status checks
 healthy_instances_id = []
-instance_statuses = client.describe_instance_status(
-    Filters=[
-        {
-            'Name': 'tag:Name',
-            'Values': [app_name]
-        },
-    ]
-)
+instance_statuses = client.describe_instance_status()
 for instance_status in instance_statuses["InstanceStatuses"]:
     if instance_status["InstanceStatus"]["Status"] == "ok" and instance_status["SystemStatus"]["Status"] == "ok":
         healthy_instances_id.append(instance_status["InstanceId"])
@@ -32,7 +25,15 @@ if len(healthy_instances_id) == 0:
 
 # make list of public IPs of instances, that in running state
 instances_public_ip = []
-instance_reservations = client.describe_instances(InstanceIds=healthy_instances_id)
+instance_reservations = client.describe_instances(
+    InstanceIds=healthy_instances_id, 
+    Filters=[
+        {
+            'Name': 'tag:Name',
+            'Values': [app_name]
+        },
+    ]
+)
 for r in instance_reservations["Reservations"]:
     instances = r["Instances"]
     for instance in instances:
