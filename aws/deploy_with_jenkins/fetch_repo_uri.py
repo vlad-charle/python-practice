@@ -4,8 +4,6 @@ import os
 app_name = os.getenv("APP")
 region = os.getenv("REGION")
 
-print(f"Fetching repo URI for {app_name} in {region}")
-
 ecr = boto3.client('ecr', region_name=region)
 
 repos = ecr.describe_repositories()['repositories']

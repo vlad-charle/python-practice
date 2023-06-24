@@ -4,8 +4,6 @@ import os
 app_name = os.getenv("APP")
 region = os.getenv("REGION")
 
-print(f"Fetching tags list for {app_name} in {region}")
-
 ecr = boto3.client('ecr', region_name=region)
 
 images = ecr.describe_images(
