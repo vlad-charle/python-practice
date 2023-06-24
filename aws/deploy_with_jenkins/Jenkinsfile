@@ -57,6 +57,19 @@ pipeline {
         //     }
         // }
 
+        stage('Chose image to deploy - script') {
+            steps {
+                script {
+                    input {
+                        message 'Please, chose image to deploy'
+                        parameters {
+                            choice(name: 'IMAGE', choices: TAGS_LIST, description: 'Chose ${APP} image to deploy')
+                        }
+                    }
+                }
+            }
+        }
+
         // stage('Deploy and check status') {
         //     environment {
         //         IMAGE = "${REPO_URI}:${params.IMAGE}"
