@@ -80,7 +80,7 @@ resource "aws_security_group" "ssh_80" {
 
 
 resource "aws_instance" "server" {
-  count                       = 3
+  count                       = 1
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t2.micro"
   associate_public_ip_address = true

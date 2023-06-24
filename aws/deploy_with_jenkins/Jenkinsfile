@@ -52,7 +52,7 @@ pipeline {
         stage('Deploy and check status') {
             steps {
                 echo env.IMAGE
-                // sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
+                sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
             }
         }
     }
