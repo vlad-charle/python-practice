@@ -10,6 +10,8 @@ ssh_key = os.getenv("SSH_KEY")
 image = os.getenv("IMAGE")
 region = os.getenv("REGION")
 
+print(ssh_key)
+
 client = boto3.client('ec2', region_name=region)
 
 # make list of instances, that passed both status checks
