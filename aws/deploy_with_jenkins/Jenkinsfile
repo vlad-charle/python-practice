@@ -44,27 +44,16 @@ pipeline {
             }
         }
 
-        // stage('Chose image to deploy') {
-        //     input {
-        //         message 'Please, chose image to deploy'
-        //         ok 'Done'
-        //         parameters {
-        //             choice(name: "IMAGE", choices: TAGS_LIST, description: "Chose ${APP} image to deploy")
-        //         }
-        //     }
-        //     steps {
-        //         echo params.IMAGE
-        //     }
-        // }
-
-        stage('Chose image to deploy - script') {
+        stage('Chose image to deploy') {
             steps {
                 input {
-                    message 'Please choose an image to deploy'
+                    message 'Please, chose image to deploy'
+                    ok 'Done'
                     parameters {
-                        choice(name: 'IMAGE', choices: TAGS, description: "Choose ${APP} image to deploy")
+                        choice(name: "IMAGE", choices: TAGS, description: "Chose ${APP} image to deploy")
                     }
                 }
+                echo params.IMAGE
             }
         }
 
