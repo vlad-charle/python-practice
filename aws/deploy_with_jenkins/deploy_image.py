@@ -55,8 +55,8 @@ for ip in instances_public_ip:
     token = ecr.get_authorization_token()['authorizationData'][0]['authorizationToken']
     stdin, stdout, stderr = ssh.exec_command(f'echo {token} | sudo docker login -u AWS --password-stdin && sudo docker run --name {app_name} -p 8080:80 {image}')
     print(stdout.readlines())
-    print(stdin)
-    print(stderr)
+    print(stdin.readlines())
+    print(stderr.readlines())
     status_checks = 1
     while True:
         time.sleep(5)
