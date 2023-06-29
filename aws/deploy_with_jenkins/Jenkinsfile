@@ -21,7 +21,7 @@ pipeline {
     environment {
         AWS_ACCESS_KEY_ID = credentials('aws_access_key_id')
         AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
-        SSH_KEY = credentials('ssh_key')
+        // SSH_KEY = credentials('ssh_key')
         REGION = "${params.REGION}"
         APP = "${params.APP}"
     }
@@ -55,7 +55,13 @@ pipeline {
 
         stage('Deploy and check status') {
             steps {
-                sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
+                withCredentials([file(credentialsId: 'ssh_key_file', variable: 'public-key')]) {
+                sh """
+                cp \$public-key ${WORKSPACE}/aws/deploy_with_jenkins/public-key.pub
+                python3 aws/deploy_with_jenkins/deploy_image.py
+                """
+                }
+                // sh 'python3 aws/deploy_with_jenkins/deploy_image.py'
             }
         }
     }
