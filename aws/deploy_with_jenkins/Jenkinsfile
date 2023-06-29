@@ -55,9 +55,9 @@ pipeline {
 
         stage('Deploy and check status') {
             steps {
-                withCredentials([file(credentialsId: 'ssh_key_file', variable: 'publicKey')]) {
+                withCredentials([file(credentialsId: 'ssh_key_file', variable: 'privateKey')]) {
                 sh """
-                cp \$publicKey ${WORKSPACE}/public-key.pub
+                cp \$privateKey ${WORKSPACE}/private-key
                 python3 aws/deploy_with_jenkins/deploy_image.py
                 """
                 }
