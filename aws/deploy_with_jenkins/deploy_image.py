@@ -6,7 +6,6 @@ import sys
 import requests
 
 app_name = os.getenv("APP")
-# ssh_key = os.getenv("SSH_KEY")
 image = os.getenv("IMAGE")
 region = os.getenv("REGION")
 workspace_path = os.getenv("WORKSPACE")
@@ -51,12 +50,13 @@ for ip in instances_public_ip:
     print(f"Logging into server {ip}")
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    # key = paramiko.RSAKey.from_private_key(paramiko.RSAKey(data=ssh_key.encode()))
     ssh.connect(hostname=ip, username="ubuntu", key_filename=workspace_path + "/private-key")
     ecr = boto3.client('ecr', region_name=region)
     token = ecr.get_authorization_token()['authorizationData'][0]['authorizationToken']
     stdin, stdout, stderr = ssh.exec_command(f'echo {token} | sudo docker login -u AWS --password-stdin && sudo docker run --name {app_name} -p 8080:80 {image}')
     print(stdout.readlines())
+    print(stdin)
+    print(stderr)
     status_checks = 1
     while True:
         time.sleep(5)
