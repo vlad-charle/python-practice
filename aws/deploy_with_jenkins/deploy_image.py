@@ -4,6 +4,7 @@ import time
 import paramiko
 import sys
 import requests
+import base64
 
 app_name = os.getenv("APP")
 image = os.getenv("IMAGE")
@@ -50,19 +51,42 @@ for ip in instances_public_ip:
     print(f"Logging into server {ip}")
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(hostname=ip, username="ubuntu", key_filename=workspace_path + "/private-key")
+    user_home_dir = os.getenv("HOME")
+    ssh.connect(hostname=ip, username="ubuntu", key_filename=user_home_dir + "/.ssh/id_rsa")
     ecr = boto3.client('ecr', region_name=region)
+    repo_uri = os.getenv("REPO_URI")
+    # get ECR token, decode and format it
     token = ecr.get_authorization_token()['authorizationData'][0]['authorizationToken']
-    stdin, stdout, stderr = ssh.exec_command(f'echo {token} | sudo docker login -u AWS --password-stdin && sudo docker run --name {app_name} -p 8080:80 {image}')
-    print(stdout.readlines())
-    print(stdin.readlines())
-    print(stderr.readlines())
+    ecr_username, ecr_password = base64.b64decode(token).decode('utf-8').split(":")
+    # make list of running containers and kill them
+    running_containers_in, running_containers_out, running_containers_err = ssh.exec_command('sudo docker ps -q')
+    running_containers = running_containers_out.readlines()
+    for container in running_containers:
+        print(container)
+        container_in, container_out, container_err = ssh.exec_command(f'sudo docker kill {container}')
+    
+    # cleanup Docker, login to ECR witj token and run container
+    stdin, stdout, stderr = ssh.exec_command(f'sudo docker system prune -af && echo {ecr_password} | sudo docker login -u {ecr_username} --password-stdin {repo_uri} && sudo docker run -d --name {app_name} -p 8080:80 {image}')
+
+    # print out command output and error, if any
+    while True:
+        print(stdout.read().decode(), end='')
+        if stdout.channel.exit_status_ready():
+            break
+
+    while True:
+        print(stderr.read().decode(), end='')
+        if stderr.channel.exit_status_ready():
+            break
+
+    # health check
     status_checks = 1
     while True:
         time.sleep(5)
         print(f"Status check #{status_checks}")
-        stdin, stdout, stderr = ssh.exec_command(f'docker ps --filter status=running')
+        stdin, stdout, stderr = ssh.exec_command(f'sudo docker ps --filter status=running')
         container_status = stdout.readlines()
+
         if container_status[1]:
             print(f"{app_name} container started succesfully")
             break

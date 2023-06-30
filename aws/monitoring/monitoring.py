@@ -68,9 +68,10 @@ def self_recovery(ip):
     print("Starting self-recovery")
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(hostname=ip, username="ubuntu", key_filename=user_home_dir + "/.ssh/id_rsa.pub")
+    ssh.connect(hostname=ip, username="ubuntu", key_filename=user_home_dir + "/.ssh/id_rsa")
     print(f"Logged into server {ip}")
     stdin, stdout, stderr = ssh.exec_command('sudo docker ps -a')
+    print(stdout.readlines())
     containers = stdout.readlines()
     container_id = containers[1].split(" ")[0]
     print(f"Got container ID: {container_id}")
