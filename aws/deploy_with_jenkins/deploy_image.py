@@ -51,8 +51,7 @@ for ip in instances_public_ip:
     print(f"Logging into server {ip}")
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    user_home_dir = os.getenv("HOME")
-    ssh.connect(hostname=ip, username="ubuntu", key_filename=user_home_dir + "/.ssh/id_rsa")
+    ssh.connect(hostname=ip, username="ubuntu", key_filename=workspace_path + "/private-key")
     ecr = boto3.client('ecr', region_name=region)
     repo_uri = os.getenv("REPO_URI")
     # get ECR token, decode and format it
