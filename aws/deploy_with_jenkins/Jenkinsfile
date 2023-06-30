@@ -35,7 +35,7 @@ pipeline {
                     TAGS_LIST = TAGS.substring(1,lastSymbol).split(',').collect {tag -> tag.trim()}
                     echo "List of tags fetched"
                     echo "Fetching URI"
-                    REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_repo_uri.py',returnStdout: true).trim()
+                    env.REPO_URI = sh(script: 'python3 aws/deploy_with_jenkins/fetch_repo_uri.py',returnStdout: true).trim()
                     echo "URI fetched"
                 }
             }
@@ -47,7 +47,7 @@ pipeline {
                     def selectedImage = input(message: 'Please choose an image to deploy', 
                             parameters: [choice(name: 'IMAGE', choices: TAGS_LIST, description: "Choose ${APP} image to deploy")]
                         ).replaceAll("'", "")
-                    env.IMAGE = "${REPO_URI}:${selectedImage}"
+                    env.IMAGE = "${env.REPO_URI}:${selectedImage}"
                 }
             }
         }
